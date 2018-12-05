@@ -4,12 +4,12 @@ Faire cette liste de commande pour que ca marche
 
 
 
-composer require server --dev
-Php bin/console server:run
+composer require server --dev/
+Php bin/console server:run/
 
-php bin/console doctrine:database:create
-php bin/console doctrine:migration:migrate
-php bin/console doctrine:fixtures:load
+php bin/console doctrine:database:create/
+php bin/console doctrine:migration:migrate/
+php bin/console doctrine:fixtures:load/
 
 
 
