@@ -3,7 +3,9 @@
 namespace App\Controller;
 
 use App\Entity\Article;
-use http\Env\Request;
+use App\Form\ArticleType;
+use Doctrine\Common\Persistence\ObjectManager;
+use phpDocumentor\Reflection\Types\Null_;
 use function Sodium\add;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -11,6 +13,8 @@ use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\ArticleRepository;
+use Symfony\Component\HttpFoundation\Request;
+
 
 
 
@@ -39,29 +43,25 @@ class BlogController extends AbstractController
     }
     /**
     * @Route("/blog/new", name="blog_create")
+     *@Route("/blog/{id}/edit", name="blog_edit")
     */
-    public function create(){
-        $article = new Article();
-
-        $form=$this->createFormBuilder($article)
-            ->add('title',TextType::class, [
-                'attr'=> [
-                    'placeholder'=>"Titre de l'article"
-                ]
-            ])
-            ->add('content',TextareaType::class,[
-                'attr'=> [
-                    'placeholder'=>"Contenu de l'article"
-                ]
-            ])
-            ->add('image',TextType::class,[
-                'attr'=> [
-                    'placeholder'=>"Image de l'article"
-                ]
-            ])
-            ->getForm();
+    public function create(Article $article = null, Request $request, ObjectManager $manager){
+        if(!$article){
+            $article = new Article();
+        }
+        $form = $this->createForm(ArticleType::class, $article);
+        $form->handleRequest($request);
+        if($form->isSubmitted() &&$form->isValid()){
+            if(!$article->getId()){
+                $article->setCreatedAt(new \DateTime());
+            }
+            $manager->persist($article);
+            $manager->flush();
+            return $this->redirectToRoute('blog_show',['id'=>$article->getId()]);
+        }
         return $this->render('blog/create.html.twig',[
-            'formArticle'=>$form ->createView()
+            'formArticle'=>$form ->createView(),
+            'editMode'=> $article-> getId()!==null
         ]);
     }
     /**
